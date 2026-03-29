@@ -1,4 +1,3 @@
-import cookie_parser from 'cookie-parser';
 import { JwtService } from '../src/services/jwt_create.js';
 import { CustomerService } from "../src/services/customer_services.js";
 import { ApiError } from '../src/utils/ApiError.js';

@@ -1,6 +1,5 @@
 import { CustomerRepo } from "../repositories/customer.js";
 import { ApiError} from "../utils/ApiError.js";
-import async_handler from "../utils/async_handler.js";
 
 export const CustomerService={
     get_users:async()=>{
@@ -30,7 +29,7 @@ export const CustomerService={
             throw new ApiError("Mobile number is required",400);
         }
         if(!customer_name){
-            customer_name="Guest"+ Math.floor(Math.random() * 100000);
+            customer_name="Guest_"+ Math.floor(Math.random() * 100000);
         }
         return CustomerRepo.create(data);
     },
