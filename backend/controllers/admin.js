@@ -1,8 +1,9 @@
-import {admin_service} from "../src/services/admin.js";
-import { ApiError } from "../src/utils/ApiError.js";
-import async_handler from "../src/utils/async_handler.js";
+import {admin_service} from "../src/services/admin_service.js";
+import { JwtService } from '../src/services/jwt_create.js';
+import { ApiError } from '../src/utils/ApiError.js';
+import async_handler from '../src/utils/async_handler.js';
 
-export const admin_controller={
+export const adminController={
     create_admin:async_handler(async(req,res,next)=>{
         try{
             const user= await admin_service.create_admin(req.body);

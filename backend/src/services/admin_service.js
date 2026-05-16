@@ -1,5 +1,5 @@
-import { ApiError } from "../utils/ApiError";
-import { admin_repo } from "../repositories/admin.js";
+import { ApiError } from '../utils/ApiError.js';
+import { admin_repo } from '../repositories/admin.js';
 
 export const admin_service={
     login_admin:async(data)=>{

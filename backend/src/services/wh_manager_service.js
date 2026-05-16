@@ -32,12 +32,15 @@ export const wh_manager_service={
         return user;
     },
     verify_otp_wh_manager:async(data)=>{
-        const {whm_email, otp}=data;
+        const {whm_email,admin_email, otp, otp2}=data;
         if(!whm_email){
             throw new ApiError("Email is required",400);
         }
         if(!otp){
             throw new ApiError("OTP is required",400);
+        }
+        if(!otp2){
+            throw new ApiError("Admin OTP is required",400);
         }
         const user = await wh_managerRepo.verify_otp_wh_manager(data);
         return user;

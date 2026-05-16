@@ -119,7 +119,7 @@ export const CustomerRepo = {
                 body: JSON.stringify({
                     to: data.c_email,
                     subject: "Login OTP for Inventory app",
-                    body: `Your OTP to log in is ${otp}. OTP is valid for 2 minutes only.`
+                    body: `Your OTP to log in is ${otp}. OTP is valid for 5 minutes only.`
                 })
             });
 

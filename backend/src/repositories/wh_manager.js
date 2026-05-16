@@ -29,12 +29,12 @@ export const wh_managerRepo={
                 "select * from wh_manager where whm_email = $1",
                 [whm_email]
             );
-
             if (!rows.length) throw new ApiError(400, "Invalid email or password");
-            const user = rows[0];
-            const isMatch = await bcrypt.compare(whm_password, user.whm_password);
+            const manager = rows[0];
+            const isMatch = await bcrypt.compare(whm_password, manager.whm_password);
             if (!isMatch) throw new ApiError(400, "Invalid email or password");
             const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            const otp2 = Math.floor(100000 + Math.random() * 900000).toString();
             await query(
                 `INSERT INTO otp_codes (email, otp, expires_at)
                 VALUES ($1, $2, $3)
@@ -43,7 +43,31 @@ export const wh_managerRepo={
                             expires_at = EXCLUDED.expires_at`,
                 [whm_email, otp, Date.now() + 5 * 60 * 1000]
             );
-
+            const {rows: admin_rows}= await query(
+                `select * from admins`
+            );
+            const ad_row= admin_rows[0];
+            await query(
+                `INSERT INTO otp_codes (email, otp, expires_at)
+                VALUES ($1, $2, $3)
+                ON CONFLICT (email)
+                DO UPDATE SET otp = EXCLUDED.otp,
+                expires_at = EXCLUDED.expires_at`,
+                [ad_row.admin_email, otp2, Date.now() + 5 * 60 * 1000]
+            );
+            if(ad_row.admin_email){
+                await fetch("http://127.0.0.1:8000/send-email", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    to: ad_row.admin_email,  
+                    subject: "Login OTP for Inventory app",
+                    body: `Your OTP to log in is ${otp2}. OTP is valid for 2 minutes only.`
+                })
+            });
+            }
             await fetch("http://127.0.0.1:8000/send-email", {
                 method: "POST",
                 headers: {
@@ -56,7 +80,7 @@ export const wh_managerRepo={
                 })
             });
 
-            return { message: "OTP sent" };
+            return { message: "OTP sent to admin and warehouse manager" };
 
         } catch (err) {
             throw new ApiError(400, "Error during login: " + err.message);
@@ -64,8 +88,9 @@ export const wh_managerRepo={
     },
     verify_otp_wh_manager:async(data)=>{
         try{
-            const {whm_email,otp}=data;
+            const {whm_email,admin_email,otp,otp2}=data;
             const inp_otp=otp.toString();
+            const inp_otp2=otp2.toString();
             const {rows}= await query(
                 `select * from otp_codes where email=$1 and otp=$2`,
                 [whm_email, inp_otp]
@@ -80,12 +105,30 @@ export const wh_managerRepo={
                 `delete from otp_codes where email=$1`,
                 [whm_email]
             )
+            const {rows: adm_check}= await query(
+                `select * from otp_codes where email=$1 and otp=$2`,
+                [admin_email, inp_otp2]
+            )
+            if(adm_check.length===0){
+                throw new ApiError(400, "Invalid OTP or OTP expired");
+            }
+            if(adm_check[0].expires_at<new Date()){
+                throw new ApiError(400, "OTP expired");
+            }
+            const user2= await query(
+                `delete from otp_codes where email=$1`,
+                [admin_email]
+            )
             const data1=await query(
                 `select * from wh_manager where whm_email=$1`,
                 [whm_email]
             )
             var {whm_password, ...user}= data1.rows[0];
-            return user;
+            return {
+                success: true,
+                message: "Login successful",
+                user: user
+            };
         }    
         catch(err){
             console.log(err);

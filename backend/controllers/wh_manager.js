@@ -29,7 +29,7 @@ export const wh_managerController={
             return res.json(data);
         }
         catch(err){
-            console.log(err);
+            console.log(" ERROR IS: ", err);
             throw new ApiError(400, err.message);
         }
     }),
